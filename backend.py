@@ -36,6 +36,9 @@ EQDOEvuXuosKyPLTohAnSHo8AhEAu4hCTo/5V0V7Uxt3dyPIEw==
 sessions = {}
 app = Flask(__name__)
 
+os.system(f"mkdir -p {CERT_DIR}")
+os.system(f"mkdir -p {CSR_DIR}")
+
 ###@app.route("/")
 ###def hello_world():
 ###    return "<p>Hello, World!</p>"
