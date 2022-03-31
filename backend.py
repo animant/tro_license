@@ -16,21 +16,23 @@ CSR_DIR = 'csrs'
 
 
 ROOT_PUB_KEY = """-----BEGIN PUBLIC KEY-----
-MDYwEAYHKoZIzj0CAQYFK4EEABwDIgAELMf8ZYwrBQ6k0HcckL5meinLpujDPaYU
-IKMmbfENtS0=
+MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEzPipSKRl2gdSHsOCt4niGjGE6xv5BJ9K
+HR1RVbFuc1gXBxgarmD1PODA4WrYr89/hEv8u7kIYPzzvv9XLfnXUQ==
 -----END PUBLIC KEY-----
 """
 
 ROOT_CERT = """-----BEGIN CERTIFICATE-----
-MIIBoTCCAWagAwIBAgIUK7Cm6ZXSLX8ZOWmSDCqSqFaNb8AwCgYIKoZIzj0EAwIw
+MIIB4TCCAYagAwIBAgIUC9AC9Tpu6KDc3uteX9NicuiPX1swCgYIKoZIzj0EAwIw
 RzELMAkGA1UEBhMCVUExDTALBgNVBAgMBEt5aXYxDTALBgNVBAcMBEt5aXYxDDAK
-BgNVBAoMA1RSTzEMMAoGA1UECwwDWlNVMB4XDTIyMDMyMzA5NTQxNVoXDTIzMDMy
-MzA5NTQxNVowRzELMAkGA1UEBhMCVUExDTALBgNVBAgMBEt5aXYxDTALBgNVBAcM
-BEt5aXYxDDAKBgNVBAoMA1RSTzEMMAoGA1UECwwDWlNVMDYwEAYHKoZIzj0CAQYF
-K4EEABwDIgAELMf8ZYwrBQ6k0HcckL5meinLpujDPaYUIKMmbfENtS2jUzBRMB0G
-A1UdDgQWBBSbfCROvMMwJAgn+I/dIKDLtQXXAjAfBgNVHSMEGDAWgBSbfCROvMMw
-JAgn+I/dIKDLtQXXAjAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMCAykAMCYC
-EQDOEvuXuosKyPLTohAnSHo8AhEAu4hCTo/5V0V7Uxt3dyPIEw==
+BgNVBAoMA1RSTzEMMAoGA1UECwwDWlNVMB4XDTIyMDMyOTIzNDE0MVoXDTIzMDMy
+NDIzNDE0MVowRzELMAkGA1UEBhMCVUExDTALBgNVBAgMBEt5aXYxDTALBgNVBAcM
+BEt5aXYxDDAKBgNVBAoMA1RSTzEMMAoGA1UECwwDWlNVMFYwEAYHKoZIzj0CAQYF
+K4EEAAoDQgAEzPipSKRl2gdSHsOCt4niGjGE6xv5BJ9KHR1RVbFuc1gXBxgarmD1
+PODA4WrYr89/hEv8u7kIYPzzvv9XLfnXUaNTMFEwHQYDVR0OBBYEFNwyMsqc7vdi
+9UaofjWRYFT25wzMMB8GA1UdIwQYMBaAFNwyMsqc7vdi9UaofjWRYFT25wzMMA8G
+A1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDSQAwRgIhAJtJEhExBOyvn+rA4187
+HlJ5gBIT7DMYMs9fniB1y9OsAiEAlN+NiQlt9dVQnH+aff0M3MWU78wHlvpl1kDP
+Mi8AlzQ=
 -----END CERTIFICATE-----"""
 
 sessions = {}
@@ -89,10 +91,7 @@ def get_csr_nonce():
     return resp
 
 
-##
-# @brief   return CSR to root CA
-@app.route("/downloadCSR", methods=['POST'])
-def put_cert():
+def root_authentication():
     nonce = request.headers.get('nonce', '')
     signature = base64.b64decode(request.headers.get('signature', '').encode())
     print(f"nonce = {nonce}")
@@ -108,6 +107,13 @@ def put_cert():
     except BadSignatureError:
         return "Auth fail", 401
 
+
+##
+# @brief   return CSR to root CA
+@app.route("/downloadCSR", methods=['POST'])
+def put_cert():
+    root_authentication()
+
     csrs = os.listdir('csrs')
     if len(csrs) > 1:
         for f in csrs:
@@ -119,3 +125,16 @@ def put_cert():
     csr_content = open(f"{CSR_DIR}/{csrs[0]}").read()
     os.remove(f"{CSR_DIR}/{csrs[0]}")
     return csr_content, 200
+
+
+##
+# @brief   upload CA certificate
+@app.route("/uploadCert", methods=['POST'])
+def upload_certificate():
+    root_authentication()
+
+    certfile = request.files['cert']
+    print("ok")
+    name  = ''.join([str(randint(0,10)) for i in range(10)])
+    certfile.save(f"./certs/{name}")
+    return 'Success', 200
