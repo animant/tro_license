@@ -1,6 +1,4 @@
-Requirements: 
-You need `node.js` installed, if no, install node.js last one
-
-1. Go to frontend dir
-2. Run `npm install`
-3. `npm start`
+Go to frontend dir, run:
+1. `docker build -t tro .`
+2. `docker run -d -it -p 3000:3000 tro`
+3. Go to http://localhost:3000
