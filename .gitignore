@@ -3,4 +3,4 @@ __pycache__/
 certs
 csrs
 tests/tmp/
-node_modules
+frontend/node_modules
